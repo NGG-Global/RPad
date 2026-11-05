@@ -200,4 +200,6 @@ export const he = {
   resetLayout: 'אפס פריסה',
   symbols: 'סמלים',
   dismiss: 'סגור',
+  installPackageHint: 'ההתקנה מריצה library(...) בקונסולה: החבילה יורדת אם צריך ונטענת. בכל הפעלה מחדש של R יש להריץ שוב library().',
+  missingFunctionHint: 'הפונקציה {fn} שייכת לחבילה {pkg}. התקנה בלבד אינה מספיקה: יש להריץ library({pkg}) בכל סשן (גם אחרי טעינה מחדש).',
 };

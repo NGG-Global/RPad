@@ -129,8 +129,9 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
           <div className="mb-1 text-sm font-semibold">{t('packages')}</div>
           <div className="flex gap-2">
             <input className={clsx(inputClass, 'ltr-code')} placeholder="dplyr" value={pkg} onChange={(e) => setPkg(e.target.value)} />
-            <Button onClick={() => { if (pkg.trim()) void workspace.installPackage(pkg.trim()); setPkg(''); }} disabled={!pkg.trim() || !info}>{t('installPackage')}</Button>
+            <Button onClick={() => { const name = pkg.trim(); if (name) { workspace.runCode(`library(${name})`, 'console'); onClose(); } setPkg(''); }} disabled={!pkg.trim() || !info}>{t('installPackage')}</Button>
           </div>
+          <p className="mt-1 text-xs text-ink-3">{t('installPackageHint')}</p>
           {packageProgress && <div className="mt-1 text-xs text-ink-3 ltr-code">{packageProgress.name}: {packageProgress.status} {packageProgress.detail ?? ''}</div>}
         </div>
         <div className="rounded-md border border-line bg-surface-2 p-3 text-xs text-ink-2">

@@ -77,3 +77,13 @@ describe('course content', () => {
     for (const topic of COURSE_REFERENCE) for (const e of topic.entries) expect(e.link).toMatch(/^(week-\d\.html|book\.html#ch\d+)$/);
   });
 });
+
+describe('missing function hints', () => {
+  it('maps R "could not find function" errors to course packages only', async () => {
+    const { missingFunctionPackage } = await import('@/course/package-functions');
+    expect(missingFunctionPackage('Error in summarise(df, n = n()) : could not find function "summarise"')).toEqual({ fn: 'summarise', pkg: 'dplyr' });
+    expect(missingFunctionPackage('Error: could not find function "geom_boxplot"')).toEqual({ fn: 'geom_boxplot', pkg: 'ggplot2' });
+    expect(missingFunctionPackage('Error: could not find function "my_fn"')).toBeNull();
+    expect(missingFunctionPackage('Error: object \'x\' not found')).toBeNull();
+  });
+});

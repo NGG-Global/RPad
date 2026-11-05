@@ -200,4 +200,6 @@ export const en = {
   resetLayout: 'Reset layout',
   symbols: 'Symbols',
   dismiss: 'Dismiss',
+  installPackageHint: 'Runs library(...) in the console: the package is downloaded if needed and loaded. After every R restart, library() must run again.',
+  missingFunctionHint: 'The function {fn} belongs to the package {pkg}. Installing is not enough: run library({pkg}) in every session (also after a reload).',
 };

@@ -132,6 +132,13 @@ storage pressure, so export important projects (Projects → Export) or download
   interrupted; the service worker caches successful downloads.
 - `library(tidyverse)` is heavy; load the individual packages instead.
 
+**`could not find function "summarise"` (or `filter`, `ggplot`, ...) although the package is installed**
+- Installing a package and loading it are different steps in R. Run `library(dplyr)` (or
+  `library(ggplot2)`) before using its functions, in every session: after a reload or *Restart R* the
+  packages must be loaded again, even when a snapshot restored your objects. RPad shows a hint with a
+  one-tap `library(...)` button under such errors, and *Settings → Install package* runs
+  `library(...)` for you.
+
 **Plots do not appear**
 - Base graphics and printed ggplot objects are drawn on the canvas device and shown in Plots.
   A ggplot object assigned to a variable (`p <- ggplot(...)`) is only drawn when printed (`p`).

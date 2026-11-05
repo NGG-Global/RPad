@@ -7,6 +7,7 @@ import { useTranslate } from '@/hooks/useTranslate';
 import { IconButton, Menu, MenuItem, MenuSeparator, EmptyState } from './ui';
 import { useGeminiActions } from './GeminiMenu';
 import type { ExecutionRecord, OutputChunk } from '@/types';
+import { missingFunctionPackage } from '@/course/package-functions';
 
 const COLLAPSE_LINES = 40;
 
@@ -31,6 +32,7 @@ const ExecutionView = memo(function ExecutionView({ exec, selected, onToggleSele
   const hasError = exec.output.some((c) => c.kind === 'error');
   const hasWarning = exec.output.some((c) => c.kind === 'warning');
   const execPlots = plots.filter((p) => exec.plotIds.includes(p.id));
+  const missing = useMemo(() => (hasError ? missingFunctionPackage(exec.output.filter((c) => c.kind === 'error').map((c) => c.text).join('\n')) : null), [exec.output, hasError]);
 
   return (
     <div className={clsx('group border-b border-line/70 px-2 py-1.5', selected && 'bg-accent-soft/60')} data-testid="execution" data-status={exec.status}>
@@ -51,6 +53,14 @@ const ExecutionView = memo(function ExecutionView({ exec, selected, onToggleSele
             ))}
             {collapsible && !expanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent" />}
           </div>
+          {missing && (
+            <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-warn/40 bg-warn/10 px-2 py-1.5 text-xs" data-testid="package-hint">
+              <span>{t('missingFunctionHint', { fn: missing.fn, pkg: missing.pkg })}</span>
+              <button type="button" className="rounded bg-surface px-2 py-1 font-mono text-accent ltr-code" onClick={() => workspace.runCode(`library(${missing.pkg})`, 'console')}>
+                library({missing.pkg})
+              </button>
+            </div>
+          )}
           {collapsible && (
             <button type="button" className="mt-1 flex items-center gap-1 text-xs text-accent" onClick={() => setExpanded((e) => !e)}>
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
