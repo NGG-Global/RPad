@@ -1,0 +1,5 @@
+# Optional: deploy dist/ to Cloudflare Pages from the CLI.
+#   npx wrangler pages deploy dist --project-name rpad
+name = "rpad"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-01-01"

@@ -91,13 +91,17 @@ export class WebRService {
     if (this.webR) return this.info;
     const isolated = typeof crossOriginIsolated !== 'undefined' ? crossOriginIsolated : typeof SharedArrayBuffer !== 'undefined';
     if (typeof fetch !== 'undefined' && this.baseUrl.startsWith('http')) {
+      await this.verifyVfsServing();
       await this.prefetchWasm(onProgress);
     }
     onProgress?.({ phase: 'start' });
     const webR = new WebR({
       baseUrl: this.baseUrl,
       homedir: HOME,
-      interactive: false,
+      // Interactive mode is required: a top-level error or interrupt halts a
+      // non-interactive R session. captureR() switches R to non-interactive
+      // for the duration of each evaluation and restores it afterwards.
+      interactive: true,
       channelType: isolated ? ChannelType.SharedArrayBuffer : ChannelType.PostMessage,
     });
     await webR.init();
@@ -116,6 +120,29 @@ export class WebRService {
     };
     onProgress?.({ phase: 'ready' });
     return this.info;
+  }
+
+  /**
+   * Verify that the host serves WebR's lazy filesystem archives as opaque gzip
+   * files. If a server adds `Content-Encoding: gzip` the browser inflates them
+   * and WebR's own inflate fails with an empty error the first time a lazily
+   * loaded file (fonts, Cairo graphics, help pages) is touched.
+   */
+  private async verifyVfsServing(): Promise<void> {
+    try {
+      const res = await fetch(`${this.baseUrl}vfs/usr/lib/R/library/utils/misc.js.metadata`, { cache: 'no-store' });
+      if (!res.ok) return; // layout differs; let WebR report its own errors
+      const meta = (await res.json()) as { gzip?: boolean };
+      if (!meta.gzip) return;
+      const gz = await fetch(`${this.baseUrl}vfs/usr/lib/R/library/utils/misc.data.gz`);
+      const bytes = new Uint8Array(await gz.arrayBuffer());
+      if (bytes.length >= 2 && !(bytes[0] === 0x1f && bytes[1] === 0x8b)) {
+        throw new Error('The server inflates WebR\'s .data.gz files (Content-Encoding: gzip). Serve /webr/**/*.gz as opaque files without Content-Encoding.');
+      }
+    } catch (e) {
+      if ((e as Error).message?.startsWith('The server inflates')) throw e;
+      // Network hiccups here are not fatal; WebR init will surface real problems.
+    }
   }
 
   private async prefetchWasm(onProgress?: (p: InitProgress) => void) {
@@ -267,8 +294,14 @@ export class WebRService {
       }
     } catch (e) {
       errored = true;
-      console.error('R evaluation failed', e);
-      output.push({ kind: 'error', text: `Error: ${(e as Error)?.message || String(e)}` });
+      const msg = (e as Error)?.message || String(e);
+      if (/non-local transfer of control/i.test(msg)) {
+        // Raised when the user interrupts a running evaluation.
+        output.push({ kind: 'error', text: 'Execution interrupted' });
+      } else {
+        console.error('R evaluation failed', e);
+        output.push({ kind: 'error', text: `Error: ${msg}` });
+      }
     } finally {
       try {
         await shelter.purge();

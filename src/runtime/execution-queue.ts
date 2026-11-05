@@ -36,7 +36,11 @@ export class ExecutionQueue {
     for (const fn of this.listeners) fn();
   }
 
-  enqueue<T>(label: string, run: () => Promise<T>): Promise<T> & { taskId: string } {
+  /**
+   * Add a task. With `front: true` the task runs before other pending tasks
+   * (used for quick editor lookups such as expression-extent parsing).
+   */
+  enqueue<T>(label: string, run: () => Promise<T>, opts: { front?: boolean } = {}): Promise<T> & { taskId: string } {
     const id = `t${++this.counter}`;
     let resolve!: (v: T) => void;
     let reject!: (e: unknown) => void;
@@ -45,7 +49,9 @@ export class ExecutionQueue {
       reject = rej;
     }) as Promise<T> & { taskId: string };
     promise.taskId = id;
-    this.tasks.push({ id, label, run, resolve, reject, cancelled: false } as QueuedTask);
+    const task = { id, label, run, resolve, reject, cancelled: false } as QueuedTask;
+    if (opts.front) this.tasks.unshift(task);
+    else this.tasks.push(task);
     this.notify();
     void this.pump();
     return promise;

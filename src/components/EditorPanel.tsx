@@ -30,6 +30,8 @@ export function EditorPanel() {
   const [tplWeek, setTplWeek] = useState(1);
   const [tplStudent, setTplStudent] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
+  /** Run-line requests are serialised so rapid keypresses see the advanced cursor. */
+  const runChain = useRef<Promise<void>>(Promise.resolve());
 
   const active = scripts.find((s) => s.id === activeScriptId) ?? null;
 
@@ -38,8 +40,8 @@ export function EditorPanel() {
     workspace.runCode(code, 'script');
   }, []);
 
-  /** Run the selection or the complete expression at the cursor; optionally advance. */
-  const runLine = useCallback(
+  /** Resolve the expression extent with R's parser, run it, and optionally move the cursor past it. */
+  const runLineNow = useCallback(
     async (advance: boolean) => {
       const view = viewRef.current;
       if (!view) return;
@@ -61,6 +63,15 @@ export function EditorPanel() {
       view.focus();
     },
     [runText],
+  );
+
+  /** Run the selection or the complete expression at the cursor; optionally advance. */
+  const runLine = useCallback(
+    (advance: boolean) => {
+      runChain.current = runChain.current.then(() => runLineNow(advance)).catch(() => undefined);
+      return runChain.current;
+    },
+    [runLineNow],
   );
 
   const runAll = useCallback(() => {

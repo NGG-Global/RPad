@@ -20,6 +20,7 @@ export default defineConfig({
     {
       name: 'tablet-landscape',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, hasTouch: true, isMobile: false },
+      testIgnore: /portrait\.spec\.ts/,
     },
     {
       name: 'tablet-portrait',

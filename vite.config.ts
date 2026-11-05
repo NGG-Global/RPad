@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin, type Connect } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
@@ -10,8 +10,33 @@ const isolationHeaders = {
   'Cross-Origin-Embedder-Policy': 'require-corp',
 };
 
+/**
+ * WebR's lazy virtual filesystem ships as `*.data.gz` files that WebR inflates
+ * itself. Static servers must deliver them as opaque gzip files, NOT with
+ * `Content-Encoding: gzip` (the browser would inflate them first and WebR's
+ * inflate then fails). Vite's static server (sirv) adds that header for `.gz`
+ * files, so strip it for the self-hosted WebR tree in dev and preview.
+ */
+function webrGzipPassthrough(): Plugin {
+  const patch = (server: { middlewares: Connect.Server }) => {
+    server.middlewares.use((req, res, next) => {
+      if (req.url?.startsWith('/webr/') && req.url.includes('.gz')) {
+        const setHeader = res.setHeader.bind(res);
+        res.setHeader = (name: string, value: number | string | readonly string[]) => {
+          if (name.toLowerCase() === 'content-encoding') return res;
+          return setHeader(name, value);
+        };
+        res.setHeader('Content-Type', 'application/gzip');
+      }
+      next();
+    });
+  };
+  return { name: 'rpad-webr-gzip-passthrough', configureServer: patch, configurePreviewServer: patch };
+}
+
 export default defineConfig({
   plugins: [
+    webrGzipPassthrough(),
     react(),
     VitePWA({
       registerType: 'prompt',

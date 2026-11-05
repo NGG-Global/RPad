@@ -444,7 +444,7 @@ export class Workspace {
   /** Determine how many lines from `startLine` form a complete expression (uses R's parser). */
   completeExpressionLength(lines: string[]): Promise<number> {
     if (!this.r.isReady) return Promise.resolve(1);
-    return this.queue.enqueue('parse', () => this.r.completeExpressionLength(lines)).catch(() => 1);
+    return this.queue.enqueue('parse', () => this.r.completeExpressionLength(lines), { front: true }).catch(() => 1);
   }
 
   async refreshEnvironment(): Promise<void> {
