@@ -75,7 +75,7 @@ export class WebRService {
   baseUrl: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl ?? (typeof location !== 'undefined' ? `${location.origin}/webr/` : '');
+    this.baseUrl = baseUrl ?? (typeof location !== 'undefined' ? `${location.origin}${import.meta.env.BASE_URL}webr/` : '');
   }
 
   get isReady(): boolean {

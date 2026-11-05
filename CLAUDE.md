@@ -12,10 +12,11 @@ npm run build          # typecheck + production build into dist/
 npm run preview        # serve dist/ with production headers (http://localhost:4173)
 npm run test:unit      # vitest, pure TypeScript units (jsdom)
 npm run test:r         # vitest, Node integration tests against the real WebR engine
-npm run test:e2e       # Playwright, full browser chain against `vite preview` (runs the build first)
+npm run build:pages    # GitHub Pages build (BASE_PATH=/RPad/) into dist-pages/
+npm run test:e2e       # Playwright: full browser chain against `vite preview` + Pages build on a header-less server
 ```
 
-`npm run test:e2e` expects `dist/` to be current: run `npm run build` first.
+`npm run test:e2e` expects `dist/` and `dist-pages/` to be current: run `npm run build && npm run build:pages` first.
 
 ## Architecture (src/)
 
@@ -61,6 +62,14 @@ npm run test:e2e       # Playwright, full browser chain against `vite preview` (
   data frames. Pages of 200 rows are fetched on demand.
 - Code and console text are LTR inside the RTL Hebrew UI (`.ltr-code`).
 - No accounts, analytics, tracking, or external data collection.
+
+## Base path and hosts without custom headers
+
+`BASE_PATH` (default `/`) sets Vite's `base`; the GitHub Pages workflow uses `/<repository>/`.
+Runtime code derives paths from `import.meta.env.BASE_URL`; the service worker derives them from
+its registration scope. `src/sw.ts` adds COOP/COEP to every response it serves and `PwaUpdate.tsx`
+reloads once (session-guarded, only while the engine is idle) so GitHub Pages ends up cross-origin
+isolated after the first visit. Never remove that header injection without an alternative.
 
 ## Offline / PWA
 

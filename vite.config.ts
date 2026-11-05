@@ -20,7 +20,7 @@ const isolationHeaders = {
 function webrGzipPassthrough(): Plugin {
   const patch = (server: { middlewares: Connect.Server }) => {
     server.middlewares.use((req, res, next) => {
-      if (req.url?.startsWith('/webr/') && req.url.includes('.gz')) {
+      if (req.url?.includes('/webr/') && req.url.includes('.gz')) {
         const setHeader = res.setHeader.bind(res);
         res.setHeader = (name: string, value: number | string | readonly string[]) => {
           if (name.toLowerCase() === 'content-encoding') return res;
@@ -34,7 +34,14 @@ function webrGzipPassthrough(): Plugin {
   return { name: 'rpad-webr-gzip-passthrough', configureServer: patch, configurePreviewServer: patch };
 }
 
+/**
+ * Base path of the deployed site. GitHub Pages project sites live under
+ * `/<repository>/`, so the deploy workflow sets BASE_PATH=/RPad/.
+ */
+const base = (process.env.BASE_PATH ?? '/').replace(/\/?$/, '/');
+
 export default defineConfig({
+  base,
   plugins: [
     webrGzipPassthrough(),
     react(),
@@ -52,15 +59,16 @@ export default defineConfig({
         description: 'Tablet-first R programming workspace powered by WebR',
         lang: 'he',
         dir: 'rtl',
-        start_url: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         orientation: 'any',
         background_color: '#f7f7f8',
         theme_color: '#1f4e79',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: `${base}icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${base}icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
+          { src: `${base}icons/icon-512-maskable.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       injectManifest: {

@@ -58,7 +58,8 @@ interrupt, and the `View()` bridge.
 
 ## Deployment (static hosting over HTTPS)
 
-The build in `dist/` is a static site (about 48 MB, most of it the R WebAssembly runtime and its
+Set `BASE_PATH=/sub/path/` at build time when the site is not served from the domain root (the Pages
+workflow does this). The build in `dist/` is a static site (about 48 MB, most of it the R WebAssembly runtime and its
 lazily loaded library files). WebR needs the page to be **cross-origin isolated** to use the
 `SharedArrayBuffer` channel, which is what allows stopping running R code:
 
@@ -82,8 +83,20 @@ interrupt R; the active channel is shown in Settings → About.
 4. Open the deployed URL on the tablet in Chrome, wait for the R engine (≈20 MB download, then
    cached), and use *Install app* (or the in-app install banner) to add RPad to the home screen.
 
-Any other static host works if it can send the two headers (Netlify `_headers` uses the same syntax;
-GitHub Pages cannot set headers, so it would run in the PostMessage fallback).
+### GitHub Pages (free, no computer needed)
+
+`.github/workflows/pages.yml` builds the site on every push to `main` and publishes it to
+`https://<owner>.github.io/<repository>/`. The first run enables Pages automatically; if it fails,
+open the repository Settings → Pages and set *Source* to *GitHub Actions*, then re-run the workflow.
+
+GitHub Pages cannot send custom headers. RPad's service worker therefore adds the COOP/COEP headers
+itself to every response it serves, and the app reloads once on the first visit so the page becomes
+cross-origin isolated (same technique as the widely used `coi-serviceworker`). After that first
+reload the SharedArrayBuffer channel and the Stop button work exactly as on Cloudflare or Netlify.
+Verified locally with Playwright against a static server that sends no headers.
+
+Any other static host works too if it can send the two headers (Netlify reads the same `_headers`
+file; drag-and-drop the `dist` folder onto Netlify Drop for a one-off deployment).
 
 ### Offline behaviour
 

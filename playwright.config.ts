@@ -20,18 +20,32 @@ export default defineConfig({
     {
       name: 'tablet-landscape',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, hasTouch: true, isMobile: false },
-      testIgnore: /portrait\.spec\.ts/,
+      testIgnore: /(portrait|pages)\.spec\.ts/,
     },
     {
       name: 'tablet-portrait',
       use: { ...devices['Desktop Chrome'], viewport: { width: 800, height: 1280 }, hasTouch: true, isMobile: false },
       testMatch: /portrait\.spec\.ts/,
     },
+    {
+      // GitHub Pages build: sub-path, static server without COOP/COEP headers.
+      name: 'github-pages',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, baseURL: 'http://127.0.0.1:4175' },
+      testMatch: /pages\.spec\.ts/,
+    },
   ],
-  webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+    {
+      command: 'node scripts/static-server.mjs dist-pages /RPad/ 4175',
+      url: 'http://127.0.0.1:4175/RPad/',
+      reuseExistingServer: true,
+      timeout: 60_000,
+    },
+  ],
 });
