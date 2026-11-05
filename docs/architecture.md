@@ -51,3 +51,11 @@
 - `interactive-widget=resizes-content` in the viewport meta plus `visualViewport` resize handling keep
   the editor cursor visible when the Android keyboard opens.
 - Hebrew is the default; `dir="rtl"` on `<html>`; every code/console surface uses `.ltr-code`.
+
+## Offline
+
+- Custom service worker (`src/sw.ts`, Workbox injectManifest). WebR's lazy filesystem issues HEAD
+  requests before reading individually served files; the worker answers those from the runtime
+  cache. Cache misses while offline return 404 so R behaves as it does online for optional files.
+- Verified with Playwright: after one online session that used dplyr and the png device, a reload
+  with the network disabled boots R and runs dplyr and plotting.

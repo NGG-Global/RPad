@@ -88,9 +88,11 @@ GitHub Pages cannot set headers, so it would run in the PostMessage fallback).
 ### Offline behaviour
 
 The service worker precaches the app shell and caches the WebR runtime files and downloaded R
-packages on first use (`CacheFirst`). After one full run of your scripts the app, the engine and
-the packages you used are available offline. Packages you have never installed still need network.
-The large runtime files are not precached at install time; they are cached when first loaded.
+packages on first use (`CacheFirst`). After the engine has started once online, RPad also warms the
+lazily loaded runtime files it needs for graphics (fonts, Cairo, filesystem indexes) in the
+background. Verified behaviour: after one online session that used dplyr and the png device, the app
+starts and runs R, dplyr and plotting with the network switched off. Packages you have never
+installed and R help pages still need network.
 
 ## Data and privacy
 

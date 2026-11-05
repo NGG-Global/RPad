@@ -39,9 +39,12 @@ export default defineConfig({
     webrGzipPassthrough(),
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'prompt',
-      // The WebR distribution is large (~47 MB). It is not precached; it is cached
-      // at runtime on first use so later launches work without network.
+      // The WebR distribution is large (~47 MB). It is not precached; the custom
+      // service worker (src/sw.ts) caches it at runtime on first use.
       includeAssets: ['icons/*.svg', 'icons/*.png'],
       manifest: {
         name: 'RPad — R Workspace',
@@ -60,33 +63,10 @@ export default defineConfig({
           { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         globIgnores: ['webr/**'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        navigateFallbackDenylist: [/^\/webr\//],
-        runtimeCaching: [
-          {
-            // Self-hosted WebR binaries and lazy virtual filesystem chunks.
-            urlPattern: ({ url }) => url.pathname.startsWith('/webr/'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'rpad-webr-runtime',
-              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 180 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Binary R packages downloaded from the WebR package repository.
-            urlPattern: ({ url }) => url.hostname === 'repo.r-wasm.org',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'rpad-r-packages',
-              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 90 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
     }),
   ],

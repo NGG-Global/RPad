@@ -77,7 +77,9 @@ export class Workspace {
     this.initPromise = (async () => {
       useAppStore.setState({ runtimeStatus: 'loading', runtimeError: null, runtimeProgress: null });
       try {
+        await waitForServiceWorker(4000);
         const info = await this.r.init((p: InitProgress) => useAppStore.setState({ runtimeProgress: p }));
+        void warmRuntimeCache(this.r.baseUrl);
         useAppStore.setState({ runtimeStatus: 'ready', runtimeInfo: info, firstRunDone: true });
         await repo.setSetting('firstRunDone', true);
         const project = useAppStore.getState().project;
@@ -648,6 +650,42 @@ export class Workspace {
   /** Persist the file snapshot of a stored file to the VFS (used after uploads from the import dialog). */
   async importStoredFile(file: StoredFile): Promise<void> {
     await this.uploadFile(file.name, new Uint8Array(await file.blob.arrayBuffer()));
+  }
+}
+
+/** Give the service worker a moment to take control so the engine download is cached on first run. */
+async function waitForServiceWorker(timeoutMs: number): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator) || navigator.serviceWorker.controller) return;
+  await Promise.race([
+    navigator.serviceWorker.ready.then(() => new Promise<void>((resolve) => {
+      if (navigator.serviceWorker.controller) return resolve();
+      navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true });
+      setTimeout(resolve, 1500);
+    })),
+    new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+  ]);
+}
+
+/**
+ * Fetch the lazily loaded runtime files (indexes, fonts, graphics support) in
+ * the background so a later offline start does not stall on the first plot.
+ * Requests go through the service worker's CacheFirst route for /webr/.
+ */
+async function warmRuntimeCache(baseUrl: string): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.onLine || !navigator.serviceWorker?.controller) return;
+  try {
+    const res = await fetch(`${baseUrl}warm-list.json`);
+    if (!res.ok) return;
+    const files = (await res.json()) as string[];
+    for (const rel of files) {
+      try {
+        await fetch(`${baseUrl}${rel}`, { priority: 'low' } as RequestInit);
+      } catch {
+        return; // went offline; stop quietly
+      }
+    }
+  } catch {
+    /* ignore */
   }
 }
 
