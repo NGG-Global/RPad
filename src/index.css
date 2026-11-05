@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-surface: 255 255 255;
+  --c-surface-2: 246 247 249;
+  --c-surface-3: 236 238 242;
+  --c-ink: 24 28 36;
+  --c-ink-2: 84 92 108;
+  --c-ink-3: 140 148 164;
+  --c-line: 222 226 233;
+  --c-accent: 31 78 121;
+  --c-accent-soft: 227 237 247;
+  --c-ok: 32 128 72;
+  --c-warn: 176 112 0;
+  --c-err: 190 40 40;
+  --editor-font-size: 14px;
+  color-scheme: light;
+}
+
+.dark {
+  --c-surface: 24 26 32;
+  --c-surface-2: 31 34 41;
+  --c-surface-3: 42 46 55;
+  --c-ink: 232 234 238;
+  --c-ink-2: 170 176 190;
+  --c-ink-3: 118 125 140;
+  --c-line: 58 63 74;
+  --c-accent: 120 170 220;
+  --c-accent-soft: 38 54 72;
+  --c-ok: 90 190 120;
+  --c-warn: 230 170 60;
+  --c-err: 240 100 100;
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  @apply bg-surface text-ink font-sans antialiased;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Code and console content is always left-to-right, even in the Hebrew UI. */
+.ltr-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
+/* CodeMirror */
+.cm-editor {
+  height: 100%;
+  font-size: var(--editor-font-size);
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+}
+.cm-editor.cm-focused { outline: none; }
+.cm-scroller { font-family: theme(fontFamily.mono); line-height: 1.55; overscroll-behavior: contain; }
+.cm-gutters { background: rgb(var(--c-surface-2)); color: rgb(var(--c-ink-3)); border-right: 1px solid rgb(var(--c-line)); }
+.cm-activeLineGutter { background: rgb(var(--c-surface-3)); }
+.cm-activeLine { background: rgb(var(--c-accent) / 0.06); }
+.cm-selectionBackground, .cm-editor ::selection { background: rgb(var(--c-accent) / 0.25) !important; }
+.cm-cursor { border-left-color: rgb(var(--c-ink)); border-left-width: 2px; }
+.cm-matchingBracket { background: rgb(var(--c-accent) / 0.2); outline: 1px solid rgb(var(--c-accent) / 0.5); }
+.cm-panels { background: rgb(var(--c-surface-2)); color: rgb(var(--c-ink)); border-color: rgb(var(--c-line)); }
+.cm-panels input, .cm-panels button { font-size: 13px; }
+.cm-searchMatch { background: rgb(var(--c-warn) / 0.3); }
+.cm-searchMatch.cm-searchMatch-selected { background: rgb(var(--c-warn) / 0.6); }
+.cm-tooltip { background: rgb(var(--c-surface-2)); border: 1px solid rgb(var(--c-line)); color: rgb(var(--c-ink)); }
+
+/* Syntax colours */
+.tok-keyword { color: #7c3aed; }
+.dark .tok-keyword { color: #c4b5fd; }
+.tok-string { color: #0f766e; }
+.dark .tok-string { color: #5eead4; }
+.tok-number { color: #b45309; }
+.dark .tok-number { color: #fbbf24; }
+.tok-comment { color: rgb(var(--c-ink-3)); font-style: italic; }
+.tok-operator { color: rgb(var(--c-ink-2)); }
+.tok-variableName { color: rgb(var(--c-ink)); }
+.tok-function { color: #1d4ed8; }
+.dark .tok-function { color: #93c5fd; }
+.tok-atom, .tok-bool { color: #be185d; }
+.dark .tok-atom, .dark .tok-bool { color: #f9a8d4; }
+
+/* Console */
+.console-pre {
+  @apply font-mono whitespace-pre-wrap break-words;
+  font-size: calc(var(--editor-font-size) - 1px);
+  line-height: 1.5;
+  tab-size: 4;
+}
+
+/* Scrollbars */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(var(--c-ink-3) / 0.5) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgb(var(--c-ink-3) / 0.5); border-radius: 4px; }
+
+/* Touch targets */
+.tap { min-height: 40px; min-width: 40px; }
+
+/* Split pane dividers */
+.divider-v { width: 10px; margin: 0 -4px; cursor: col-resize; touch-action: none; position: relative; z-index: 5; }
+.divider-v::after { content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 2px; background: rgb(var(--c-line)); }
+.divider-v:hover::after, .divider-v.active::after { background: rgb(var(--c-accent)); }
+.divider-h { height: 10px; margin: -4px 0; cursor: row-resize; touch-action: none; position: relative; z-index: 5; }
+.divider-h::after { content: ''; position: absolute; top: 4px; left: 0; right: 0; height: 2px; background: rgb(var(--c-line)); }
+.divider-h:hover::after, .divider-h.active::after { background: rgb(var(--c-accent)); }
+
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.pulse { animation: pulse-dot 1.2s ease-in-out infinite; }
+
+input, textarea, select { @apply bg-surface text-ink; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }

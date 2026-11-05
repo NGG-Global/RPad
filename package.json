@@ -1,0 +1,56 @@
+{
+  "name": "rpad",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/copy-webr.mjs",
+    "webr:copy": "node scripts/copy-webr.mjs",
+    "dev": "npm run webr:copy && vite",
+    "build": "npm run webr:copy && tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:r": "vitest run --project r-integration",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run && playwright test"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.18.3",
+    "@codemirror/commands": "^6.7.1",
+    "@codemirror/language": "^6.10.3",
+    "@codemirror/legacy-modes": "^6.5.5",
+    "@codemirror/search": "^6.5.8",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/view": "^6.34.2",
+    "@lezer/highlight": "^1.2.1",
+    "@tanstack/react-virtual": "^3.10.9",
+    "clsx": "^2.1.1",
+    "codemirror": "^6.0.1",
+    "idb": "^8.0.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "webr": "^0.6.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.2.1",
+    "vite-plugin-pwa": "^0.21.1",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
